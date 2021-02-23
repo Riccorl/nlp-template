@@ -1,3 +1,11 @@
 # @package _global_
 
 model_feature: 'fantastic_model_feature'
+
+# my typical model feature
+language_model_name: 'bert-large-cased'
+lr: 1e-5
+weight_decay: 0
+lm_fine_tune: True
+subtoken_pooling: 'mean'
+output_layer: 'sum'

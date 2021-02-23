@@ -31,10 +31,11 @@ def train(conf: omegaconf.DictConfig) -> None:
     callbacks_store.append(
         ModelCheckpoint(
             monitor=conf.monitor_var,
-            dirpath=f'experiments/{conf.model_name}',
+            dirpath="checkpoints",
             save_top_k=conf.save_top_k,
             verbose=True,
-            mode=conf.monitor_var_mode
+            mode=conf.monitor_var_mode,
+            filename="{epoch}.{val_loss:.2f}",
         )
     )
 
@@ -47,7 +48,6 @@ def train(conf: omegaconf.DictConfig) -> None:
         callbacks=callbacks_store,
         max_steps=conf.max_steps,
         precision=conf.precision,
-        amp_level=conf.amp_level
     )
 
     # module fit
