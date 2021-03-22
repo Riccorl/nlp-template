@@ -6,7 +6,7 @@ seed: 42
 # optimization
 batch_size: 32
 gradient_acc_steps: 1
-gradient_clip_value: 10.0
+gradient_clip_value: 1.0
 epochs: 10
 
 # evaluation and persistence
@@ -16,7 +16,7 @@ monitor_var: 'val_loss'
 monitor_var_mode: 'min'
 patience: 5
 model_name: 'default_name'  # used to name the directory in which model's checkpoints will be stored (experiments/model_name/...)
-save_top_k: 5
+save_top_k: 2
 
 # core
 gpus: 1
