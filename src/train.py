@@ -2,6 +2,7 @@ import omegaconf
 import hydra
 
 import pytorch_lightning as pl
+from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 from src.pl_data_modules import BasePLDataModule
@@ -9,9 +10,9 @@ from src.pl_modules import BasePLModule
 
 
 def train(conf: omegaconf.DictConfig) -> None:
-    
+
     # reproducibility
-    pl.seed_everything(conf.seed)
+    pl.seed_everything(conf.train.seed)
 
     # data module declaration
     pl_data_module = BasePLDataModule(conf)
@@ -22,35 +23,21 @@ def train(conf: omegaconf.DictConfig) -> None:
     # callbacks declaration
     callbacks_store = []
 
-    if conf.apply_early_stopping:
-        callbacks_store.append(
-            EarlyStopping(
-                monitor=conf.monitor_var,
-                mode=conf.monitor_var_mode,
-                patience=conf.patience
-            )
+    if conf.train.early_stopping_callback is not None:
+        early_stopping_callback: EarlyStopping = hydra.utils.instantiate(
+            conf.train.early_stopping_callback
         )
+        callbacks_store.append(early_stopping_callback)
 
-    callbacks_store.append(
-        ModelCheckpoint(
-            monitor=conf.monitor_var,
-            dirpath="checkpoints",
-            save_top_k=conf.save_top_k,
-            verbose=True,
-            mode=conf.monitor_var_mode,
-            filename="{epoch}.{val_loss:.2f}",
+    if conf.train.model_checkpoint_callback is not None:
+        model_checkpoint_callback: ModelCheckpoint = hydra.utils.instantiate(
+            conf.train.early_stopping_callback
         )
-    )
+        callbacks_store.append(model_checkpoint_callback)
 
     # trainer
-    trainer = pl.Trainer(
-        gpus=conf.gpus,
-        accumulate_grad_batches=conf.gradient_acc_steps,
-        gradient_clip_val=conf.gradient_clip_value,
-        val_check_interval=conf.val_check_interval,
-        callbacks=callbacks_store,
-        max_epochs=conf.epochs,
-        precision=conf.precision,
+    trainer: Trainer = hydra.utils.instantiate(
+        conf.train.pl_trainer, callbacks=callbacks_store
     )
 
     # module fit
@@ -60,10 +47,10 @@ def train(conf: omegaconf.DictConfig) -> None:
     trainer.test(pl_module, datamodule=pl_data_module)
 
 
-@hydra.main(config_path='../conf', config_name='root')
+@hydra.main(config_path="../conf", config_name="root")
 def main(conf: omegaconf.DictConfig):
     train(conf)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
