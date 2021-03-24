@@ -23,20 +23,20 @@ Facebook Research built for "*elegantly configuring complex applications*".
 ## Repository Structure
 ```
 p-lightning-template
-| conf  # contains Hydra config files
+| conf                      # contains Hydra config files
   | data
   | model
   | train
-  root.yaml  # hydra root config file
-| data  # datasets should go here
-| experiments  # where the models are stored
+  root.yaml                 # hydra root config file
+| data                      # datasets should go here
+| experiments               # where the models are stored
 | src
-  | pl_data_modules.py  # base LightinigDataModule
-  | pl_modules.py  # base LightningModule
-  | train.py  # main script for training the network
+  | pl_data_modules.py      # base LightinigDataModule
+  | pl_modules.py           # base LightningModule
+  | train.py                # main script for training the network
 | README.md
 | requirements.txt
-| setup.sh # environment setup script 
+| setup.sh                  # environment setup script 
 ```
 The structure of the repository is very simplistic and involves mainly four
 components:
@@ -74,6 +74,13 @@ new working dir.
 You can access it under the name of 'hydra:runtime.cwd'. So, for example, if your training dataset
 has the relative path 'data/train.tsv' you can convert it to a full path by prepending the hydra 
 variable before 
+
+
+## Contributing
+Contributions are always more than welcome, the only thing to take into account when submitting a pull request is
+that we utilize the [Black](https://github.com/psf/black) code formatter with a max length for the code of 120. 
+More pragmatically you should ensure to utilize the command "black -l 120" on the whole "src" directory before pushing
+the code. 
 
 
 ## Other useful repositories
