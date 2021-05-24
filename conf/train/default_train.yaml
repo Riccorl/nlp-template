@@ -10,13 +10,14 @@ model_name: default_name  # used to name the directory in which model's checkpoi
 pl_trainer:
   _target_: pytorch_lightning.Trainer
   gpus: 1
-  accumulate_grad_batches: 4
-  gradient_clip_val: 10.0
+  accumulate_grad_batches: 1
+  gradient_clip_val: 1.0
   val_check_interval: 1.0  # you can specify an int "n" here => validation every "n" steps
   max_epochs: 10
   # uncomment the lines below for training with mixed precision
-  # precision: 16
-  # amp_level: O2
+#  precision: 16
+#  deterministic: True
+#  fast_dev_run: False
 
 # early stopping callback
 # "early_stopping_callback: null" will disable early stopping
@@ -34,4 +35,5 @@ model_checkpoint_callback:
   mode: min
   verbose: True
   save_top_k: 2
-  dirpath: experiments/${train.model_name}
+  filename: 'checkpoint-val_loss_{val_loss:.4f}-epoch_{epoch:02d}'
+  auto_insert_metric_name: False

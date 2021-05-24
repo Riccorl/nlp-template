@@ -49,9 +49,15 @@ class BasePLDataModule(pl.LightningDataModule):
 
     """
 
-    def __init__(self, conf: DictConfig):
+    def __init__(self, datasets: DictConfig, batch_size: int, num_workers: int, *args, **kwargs):
         super().__init__()
-        self.conf = conf
+        self.datasets = datasets
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        # data
+        self.train_data = None
+        self.dev_data = None
+        self.test_data = None
 
     def prepare_data(self, *args, **kwargs):
         raise NotImplementedError

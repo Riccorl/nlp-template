@@ -1,7 +1,10 @@
 # @package _group_
 
-train_path: 'data/train.tsv'
-validation_path: 'data/validation.tsv'
-test_path: 'data/test.tsv'
-batch_size: 16
-num_workers: 4
+datamodule:
+  _target_: data.conll_data_modules.Conll2009DataModule
+  datasets:
+    train_path: 'data/train.tsv'
+    dev_path: 'data/dev.tsv'
+    test_path: 'data/test.tsv'
+  batch_size: 16
+  num_workers: 4

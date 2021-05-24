@@ -7,5 +7,7 @@ defaults:
   - train: default_train
   - model: default_model
   - data: default_data
+  - evaluation: default_evaluation
+  - logging: wandb_logging
   - hydra/job_logging: colorlog
   - hydra/hydra_logging: colorlog
