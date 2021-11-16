@@ -1,10 +1,27 @@
-# @package _group_
-
 datamodule:
-  _target_: data.conll_data_modules.Conll2009DataModule
+  _target_: data.pl_data_modules.BasePLDataModule
   datasets:
-    train_path: 'data/train.tsv'
-    dev_path: 'data/dev.tsv'
-    test_path: 'data/test.tsv'
-  batch_size: 16
-  num_workers: 4
+    train:
+      - _target_: data.datasets.BaseDataset
+        paths:
+          - 'data/path/to/dataset'
+
+    val:
+      - _target_: data.datasets.BaseDataset
+        paths:
+          - 'data/path/to/dataset'
+
+    test:
+      - _target_: data.datasets.BaseDataset
+        paths:
+          - 'data/path/to/dataset'
+
+  batch_sizes:
+    train: 32
+    dev: 32
+    test: 32
+
+  num_workers:
+    train: 4
+    dev: 4
+    test: 4

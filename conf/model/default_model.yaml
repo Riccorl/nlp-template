@@ -1,14 +1,3 @@
-# @package _group_
-
-_target_: pl_modules.BasePLModule
-
-params:
-  model_feature: 'fantastic_model_feature'
-
-  # my typical model feature
-  language_model_name: 'bert-large-cased'
-  lr: 1e-5
-  weight_decay: 0
-  lm_fine_tune: True
-  subtoken_pooling: 'mean'
-  output_layer: 'sum'
+_target_: model.pl_modules.BasePLModule
+your_feature_1: your_value_1
+your_feature_2: your_value_2
