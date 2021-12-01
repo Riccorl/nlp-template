@@ -59,7 +59,7 @@ done
 
 # PRELIMINARIES
 CONDA_BASE=$(conda info --base)
-source $CONDA_BASE/bin/activate potto
+source $CONDA_BASE/bin/activate <YOUR_ENV_HERE>
 
 ## if CONFIG_NAME is not specified, abort
 if [ -z "$CONFIG_NAME" ]; then
