@@ -4,7 +4,7 @@
 # checkmark font for fancy log
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 # usage text
-USAGE="$(basename "$0") CONFIG_NAME [-h] [-d] [-p PRECISION] [-c] [-m GPU_MEM]
+USAGE="$(basename "$0") CONFIG_NAME [-h] [-d] [-p PRECISION] [-c] [-m GPU_MEM] [-o]
 
 where:
     CONFIG_NAME   Configuration name (one of the configuration files in .config)
@@ -15,15 +15,16 @@ where:
     -g            Which GPU to use, default [0].
     -m            Minimum GPU memory required in MB (default: 8000). If less that this,
                   training will wait until there is enough space.
+    -o            Run the experiment offline
 
 Example:
-  ./script/training/train.sh amuse-large
-  ./script/training/train.sh amuse-large -m 10000
+  ./script/train.sh root
+  ./script/train.sh root -m 10000
 "
 
 # check for named params
 while [ $OPTIND -le "$#" ]; do
-  if getopts ":hdp:cgm:" opt; then
+  if getopts ":hdp:cgm:o" opt; then
     case $opt in
     h)
       printf "%s$USAGE" && exit 0
@@ -43,6 +44,9 @@ while [ $OPTIND -le "$#" ]; do
     m)
       GPU_MEM="$OPTARG"
       ;;
+    o)
+      WANDB="offline"
+      ;;
     \?)
       echo "Invalid option -$OPTARG" >&2 && echo "$USAGE" && exit 0
       ;;
@@ -55,7 +59,7 @@ done
 
 # PRELIMINARIES
 CONDA_BASE=$(conda info --base)
-source "$CONDA_BASE"/bin/activate <YOUR_ENV_HERE>
+source $CONDA_BASE/bin/activate potto
 
 ## if CONFIG_NAME is not specified, abort
 if [ -z "$CONFIG_NAME" ]; then
@@ -88,19 +92,22 @@ if [ -z "$GPUS" ]; then
   GPUS="[0]"
 fi
 
-# if -m is not specified, GPU_MEM is 8000
+# if -m is not specified, GPU_MEM is not limited
 if [ -z "$GPU_MEM" ]; then
   # default value
-  GPU_MEM=8000
+  GPU_MEM=0
+fi
+
+# if -o is not specified, WANDB is "online"
+if [ -z "$WANDB" ]; then
+  # default value
+  WANDB="online"
 fi
 
 # CHECK FOR BOOLEAN PARAMS
-# if -d then GPU is not required
+# if -d then GPU is not required and no output dir
 if [ "$DEV_RUN" = "True" ]; then
-  GPU_MEM=0
-  PRECISION=32
-  GPUS=0
-  USE_CPU="True"
+  WANDB="offline"
 fi
 
 # if -c GPUS is 0 (no GPU) and PRECISION is 32
@@ -128,13 +135,14 @@ GPU_RAM_MESSAGE=""
 
 cat <<EOF
 Configuration:
-------------------------------
-Configuration name: $CONFIG_NAME
-Run in debug mode:  $DEV_RUN
-Requested VRAM:     $GPU_MEM MB
-Available VRAM:     $FREE_MEM MB
-Precision:          $PRECISION bit
-Use CPU:            $USE_CPU
+------------------------------------------------
+Configuration name:   $CONFIG_NAME
+Run in debug mode:    $DEV_RUN
+Requested VRAM:       $GPU_MEM MB
+Available VRAM:       $FREE_MEM MB
+Precision:            $PRECISION bit
+Use CPU:              $USE_CPU
+W&B Mode:             $WANDB
 
 EOF
 
@@ -155,13 +163,28 @@ done
 
 # if DEV_RUN then GPU is not required
 if [ "$DEV_RUN" = "True" ]; then
-  echo -n "Debug run started, ignoring GPU memory."
+  echo -n "Debug run started, ignoring GPU memory. "
   GPU_RAM_MESSAGE=""
 fi
 
-echo -e "$GPU_RAM_MESSAGE ${CHECK_MARK} Starting.\n"
+echo -e "$GPU_RAM_MESSAGE${CHECK_MARK} Starting.\n"
 
-python src/train.py --config-name="$CONFIG_NAME" \
-  "train.pl_trainer.fast_dev_run=$DEV_RUN" \
-  "train.pl_trainer.gpus=$GPUS" \
-  "train.pl_trainer.precision=$PRECISION"
+# if you use the `GenerativeDataset` class
+# you may want to set `TOKENIZERS_PARALLELISM` to `false`
+#export TOKENIZERS_PARALLELISM=false
+
+if [ "$DEV_RUN" = "True" ]; then
+  export HYDRA_FULL_ERROR=1
+  python src/train.py --config-name="$CONFIG_NAME" \
+    "train.pl_trainer.fast_dev_run=$DEV_RUN" \
+    "train.pl_trainer.gpus=$GPUS" \
+    "train.pl_trainer.precision=$PRECISION" \
+    "hydra.run.dir=." \
+    "hydra.output_subdir=null"
+else
+  python src/train.py --config-name="$CONFIG_NAME" \
+    "train.pl_trainer.fast_dev_run=$DEV_RUN" \
+    "train.pl_trainer.gpus=$GPUS" \
+    "train.pl_trainer.precision=$PRECISION" \
+    "logging.wandb_arg.mode=$WANDB"
+fi
