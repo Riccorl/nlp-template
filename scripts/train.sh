@@ -180,7 +180,9 @@ if [ "$DEV_RUN" = "True" ]; then
     "train.pl_trainer.gpus=$GPUS" \
     "train.pl_trainer.precision=$PRECISION" \
     "hydra.run.dir=." \
-    "hydra.output_subdir=null"
+    "hydra.output_subdir=null" \
+    "hydra/job_logging=disabled" \
+    "hydra/hydra_logging=disabled"
 else
   python src/train.py --config-name="$CONFIG_NAME" \
     "train.pl_trainer.fast_dev_run=$DEV_RUN" \

@@ -3,11 +3,14 @@ from typing import Any
 import pytorch_lightning as pl
 import torch
 
+from data.labels import Labels
+
 
 class BasePLModule(pl.LightningModule):
-    def __init__(self, conf, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.save_hyperparameters(conf)
+    def __init__(self, labels: Labels = None, *args, **kwargs) -> None:
+        super().__init__()
+        self.save_hyperparameters()
+        self.labels = labels
 
     def forward(self, **kwargs) -> dict:
         """

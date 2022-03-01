@@ -7,6 +7,8 @@ from omegaconf import DictConfig
 from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 from torch.utils.data import DataLoader, Dataset
 
+from data.labels import Labels
+
 
 class BasePLDataModule(pl.LightningDataModule):
     """
@@ -55,6 +57,7 @@ class BasePLDataModule(pl.LightningDataModule):
         datasets: DictConfig,
         batch_sizes: DictConfig,
         num_workers: DictConfig,
+        labels: Labels = None,
         *args,
         **kwargs,
     ):
@@ -66,6 +69,17 @@ class BasePLDataModule(pl.LightningDataModule):
         self.train_dataset: Optional[Dataset] = None
         self.val_datasets: Optional[Sequence[Dataset]] = None
         self.test_datasets: Optional[Sequence[Dataset]] = None
+        # label file
+        self.labels: Labels = labels
+
+    def build_labels(self) -> Labels:
+        """
+        Builds the labels for the model
+
+        Returns:
+            `Labels`: A dictionary of labels
+        """
+        raise NotImplementedError
 
     def prepare_data(self, *args, **kwargs):
         pass
