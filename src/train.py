@@ -93,7 +93,7 @@ def train(conf: omegaconf.DictConfig) -> None:
     trainer.fit(pl_module, datamodule=pl_data_module)
 
     # module test
-    # trainer.test(pl_module, datamodule=pl_data_module)
+    trainer.test(pl_module, datamodule=pl_data_module)
 
 
 def set_determinism_the_old_way(deterministic: bool):

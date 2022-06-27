@@ -11,6 +11,7 @@ class BasePLModule(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.labels = labels
+        self.model = hydra.utils.instantiate(self.hparams.model, labels=labels)
 
     def forward(self, **kwargs) -> dict:
         """

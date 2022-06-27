@@ -19,10 +19,14 @@ sed -i '' "s,.*bin/activate.*,$NEW_CONDA_LINE,g" scripts/train.sh
 
 # install torch
 read -rp "Enter cuda version (e.g. '11.3', default no cuda support): " CUDA_VERSION
+read -rp "Enter PyTorch version (e.g. '1.11.0', default latest): " PYTORCH_VERSION
+if [ -n "$PYTORCH_VERSION" ]; then
+  PYTORCH_VERSION="=$PYTORCH_VERSION"
+fi
 if [ -z "$CUDA_VERSION" ]; then
-    conda install -y pytorch cpuonly -c pytorch
+    echo conda install -y pytorch"$PYTORCH_VERSION" cpuonly -c pytorch
 else
-    conda install -y pytorch cudatoolkit="$CUDA_VERSION" -c pytorch
+    echo conda install -y pytorch"$PYTORCH_VERSION" cudatoolkit="$CUDA_VERSION" -c pytorch
 fi
 
 # install python requirements
