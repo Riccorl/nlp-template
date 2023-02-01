@@ -10,12 +10,12 @@ class BaseModel(torch.nn.Module):
         super().__init__()
 
     def forward(
-            self,
-            labels: Optional[torch.Tensor] = None,
-            compute_loss: bool = False,
-            compute_predictions: bool = False,
-            *args,
-            **kwargs,
+        self,
+        labels: Optional[torch.Tensor] = None,
+        compute_loss: bool = False,
+        compute_predictions: bool = False,
+        *args,
+        **kwargs,
     ) -> Dict[str, torch.Tensor]:
         """
         Forward pass of the model.
@@ -32,7 +32,8 @@ class BaseModel(torch.nn.Module):
             obj:`torch.Tensor`: The outputs of the model.
         """
 
-        output = {"logits": None}
+        logits = None
+        output = {"logits": logits}
 
         if compute_predictions:
             predictions = logits.argmax(dim=-1)

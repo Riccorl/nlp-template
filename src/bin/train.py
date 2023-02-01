@@ -13,8 +13,8 @@ from pytorch_lightning.callbacks.progress.rich_progress import RichProgressBar
 from pytorch_lightning.loggers import WandbLogger
 from rich.console import Console
 
-from src.data.pl_data_modules import BasePLDataModule
-from model.pl_modules import BasePLModule
+from data.pl_data_modules import BasePLDataModule
+from models.pl_modules import BasePLModule
 
 
 def train(conf: omegaconf.DictConfig) -> None:
@@ -107,6 +107,7 @@ def set_determinism_the_old_way(deterministic: bool):
 
 @hydra.main(config_path="../conf")
 def main(conf: omegaconf.DictConfig):
+    print(OmegaConf.to_yaml(conf))
     train(conf)
 
 

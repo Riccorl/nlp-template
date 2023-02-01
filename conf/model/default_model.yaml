@@ -2,6 +2,7 @@ _target_: model.pl_modules.BasePLModule
 
 model:
   _target_: models.model.BaseModel
+  language_model: "bert-base-cased"
   your_feature: 1
 
 optim_params:

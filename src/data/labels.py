@@ -26,7 +26,9 @@ class Labels:
         # to the constructor, build the inverted label dictionary
         if not _index_to_labels and _labels_to_index:
             for namespace in self._labels_to_index:
-                self._index_to_labels[namespace] = {v: k for k, v in self._labels_to_index[namespace].items()}
+                self._index_to_labels[namespace] = {
+                    v: k for k, v in self._labels_to_index[namespace].items()
+                }
 
     def get_index_from_label(self, label: str, namespace: str = "labels") -> int:
         """
@@ -42,7 +44,9 @@ class Labels:
             :obj:`int`: The index of the label.
         """
         if namespace not in self._labels_to_index:
-            raise ValueError(f"Provided namespace {namespace} is not in the label dictionary.")
+            raise ValueError(
+                f"Provided namespace {namespace} is not in the label dictionary."
+            )
 
         if label not in self._labels_to_index[namespace]:
             raise ValueError(f"Provided label {label} is not in the label dictionary.")
@@ -63,7 +67,9 @@ class Labels:
             :obj:`str`: The string representation of the label.
         """
         if namespace not in self._index_to_labels:
-            raise ValueError(f"Provided namespace {namespace} is not in the label dictionary.")
+            raise ValueError(
+                f"Provided namespace {namespace} is not in the label dictionary."
+            )
 
         if index not in self._index_to_labels[namespace]:
             raise ValueError(f"Provided label {index} is not in the label dictionary.")
@@ -87,7 +93,9 @@ class Labels:
         """
         if isinstance(labels, dict):
             self._labels_to_index[namespace] = labels
-            self._index_to_labels[namespace] = {v: k for k, v in self._labels_to_index[namespace].items()}
+            self._index_to_labels[namespace] = {
+                v: k for k, v in self._labels_to_index[namespace].items()
+            }
         # normalize input
         if isinstance(labels, (str, list)):
             labels = set(labels)
@@ -131,7 +139,9 @@ class Labels:
             :obj:`Dict[str, int]`: The label dictionary, from ``str`` to ``int``.
         """
         if namespace not in self._labels_to_index:
-            raise ValueError(f"Provided namespace `{namespace}` is not in the label dictionary.")
+            raise ValueError(
+                f"Provided namespace `{namespace}` is not in the label dictionary."
+            )
         return self._labels_to_index[namespace]
 
     def get_label_size(self, namespace: str = "labels") -> int:
@@ -146,7 +156,9 @@ class Labels:
             :obj:`int`: Number of labels.
         """
         if namespace not in self._labels_to_index:
-            raise ValueError(f"Provided namespace {namespace} is not in the label dictionary.")
+            raise ValueError(
+                f"Provided namespace {namespace} is not in the label dictionary."
+            )
         return len(self._labels_to_index[namespace])
 
     def get_namespaces(self) -> List[str]:

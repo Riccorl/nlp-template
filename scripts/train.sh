@@ -27,7 +27,7 @@ Example:
 
 # check for named params
 #while [ $OPTIND -le "$#" ]; do
-while getopts ":hl:dp:cgn:m:s:o" opt; do
+while getopts ":hl:dp:cg:n:m:s:o" opt; do
   case $opt in
   h)
     printf "%s$USAGE" && exit 0
@@ -79,7 +79,7 @@ OVERRIDES=$(echo "$@" | sed -e 's/ /\n/g')
 
 # PRELIMINARIES
 CONDA_BASE=$(conda info --base)
-source "$CONDA_BASE"/bin/activate ner
+source "$CONDA_BASE"/bin/activate nlp-template
 
 # Default device is GPU
 ACCELERATOR="gpu"
@@ -211,9 +211,13 @@ echo -e "$GPU_RAM_MESSAGE${CHECK_MARK} Starting.\n"
 # you may want to set `TOKENIZERS_PARALLELISM` to `false`
 #export TOKENIZERS_PARALLELISM=false
 
+# PYTHONPATH
+export PYTHONPATH=$(pwd)
+
+export HYDRA_FULL_ERROR=1
+
 if [ "$DEV_RUN" = "True" ]; then
-  export HYDRA_FULL_ERROR=1
-  python transformers_ner/train.py \
+  python src/bin/train.py \
     "model.model.language_model=$LANG_MODEL_NAME" \
     "train.pl_trainer.fast_dev_run=$DEV_RUN" \
     "train.pl_trainer.devices=$DEVICES" \
@@ -227,7 +231,7 @@ if [ "$DEV_RUN" = "True" ]; then
     "hydra/hydra_logging=disabled" \
     $OVERRIDES
 else
-  python transformers_ner/train.py \
+  python src/bin/train.py \
     "model.model.language_model=$LANG_MODEL_NAME"  \
     "train.pl_trainer.fast_dev_run=$DEV_RUN" \
     "train.pl_trainer.devices=$DEVICES" \

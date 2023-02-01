@@ -1,7 +1,10 @@
 from typing import Any
 
+import hydra
 import pytorch_lightning as pl
 import torch
+import transformers as tr
+from torch.optim import RAdam
 
 from data.labels import Labels
 
@@ -39,21 +42,64 @@ class BasePLModule(pl.LightningModule):
         raise NotImplementedError
 
     def configure_optimizers(self):
-        """
-        FROM PYTORCH LIGHTNING DOCUMENTATION
+        param_optimizer = list(self.named_parameters())
+        if self.hparams.optim_params.optimizer == "radam":
+            no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
+            optimizer_grouped_parameters = [
+                {
+                    "params": [
+                        p
+                        for n, p in param_optimizer
+                        if not any(nd in n for nd in no_decay)
+                    ],
+                    "weight_decay": self.hparams.optim_params.weight_decay,
+                },
+                {
+                    "params": [
+                        p for n, p in param_optimizer if any(nd in n for nd in no_decay)
+                    ],
+                    "weight_decay": 0.0,
+                },
+            ]
 
-        Choose what optimizers and learning-rate schedulers to use in your optimization.
-        Normally you'd need one. But in the case of GANs or similar you might have multiple.
+            optimizer = RAdam(
+                optimizer_grouped_parameters, lr=self.hparams.optim_params.lr
+            )
+        elif self.hparams.optim_params.optimizer == "fuseadam":
+            try:
+                from deepspeed.ops.adam import FusedAdam
+            except ImportError:
+                raise ImportError(
+                    "Please install DeepSpeed (`pip install deepspeed`) to use FuseAdam optimizer."
+                )
 
-        Return:
-            Any of these 6 options.
+            optimizer = FusedAdam(self.parameters())
+        elif self.hparams.optim_params.optimizer == "deepspeedcpuadam":
+            try:
+                from deepspeed.ops.adam import DeepSpeedCPUAdam
+            except ImportError:
+                raise ImportError(
+                    "Please install DeepSpeed (`pip install deepspeed`) to use DeepSpeedCPUAdam optimizer."
+                )
 
-            - Single optimizer.
-            - List or Tuple - List of optimizers.
-            - Two lists - The first list has multiple optimizers, the second a list of LR schedulers (or lr_dict).
-            - Dictionary, with an 'optimizer' key, and (optionally) a 'lr_scheduler'
-              key whose value is a single LR scheduler or lr_dict.
-            - Tuple of dictionaries as described, with an optional 'frequency' key.
-            - None - Fit will run without any optimizer.
-        """
-        raise NotImplementedError
+            optimizer = DeepSpeedCPUAdam(self.parameters())
+        elif self.hparams.optim_params.optimizer == "adafactor":
+            optimizer = tr.Adafactor(
+                self.parameters(),
+                scale_parameter=False,
+                relative_step=False,
+                warmup_init=False,
+                lr=self.hparams.optim_params.lr,
+            )
+        else:
+            raise ValueError(f"Unknown optimizer {self.hparams.optim_params.optimizer}")
+
+        if self.hparams.optim_params.use_scheduler:
+            lr_scheduler = tr.get_linear_schedule_with_warmup(
+                optimizer=optimizer,
+                num_warmup_steps=self.hparams.optim_params.num_warmup_steps,
+                num_training_steps=self.hparams.optim_params.num_training_steps,
+            )
+            return [optimizer], [lr_scheduler]
+
+        return optimizer

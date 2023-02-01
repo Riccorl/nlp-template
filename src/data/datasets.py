@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any, Tuple
 from typing import Dict, Iterator, List, Union
@@ -8,10 +9,16 @@ from torch.utils.data import IterableDataset
 
 
 class BaseDataset(Dataset):
-    def __init__(self, name: str, path: Union[str, Path, List[str], List[Path]], **kwargs):
+    def __init__(
+        self,
+        name: str,
+        path: Union[str, os.PathLike, List[str], List[os.PathLike]],
+        **kwargs,
+    ):
         super().__init__()
         self.path = path
         self.name = name
+        self.project_folder = Path(__file__).parent.parent.parent
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -24,8 +31,17 @@ class BaseDataset(Dataset):
     def __repr__(self) -> str:
         return f"Dataset({self.name=}, {self.path=})"
 
-    def load(self, paths: Union[str, Path, List[str], List[Path]]) -> Any:
+    def load(
+        self,
+        paths: Union[str, os.PathLike, List[str], List[os.PathLike]],
+        *args,
+        **kwargs,
+    ) -> Any:
         # load data from single or multiple paths in one single dataset
+        raise NotImplementedError
+
+    @staticmethod
+    def collate_fn(batch: Any, *args, **kwargs) -> Any:
         raise NotImplementedError
 
 

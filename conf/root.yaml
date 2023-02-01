@@ -7,10 +7,10 @@ model_name: ${model.model.language_model}
 
 defaults:
   - _self_
-  - train: default
-  - model: default
-  - data: default
-  - evaluate: default
+  - train: default_train
+  - model: default_model
+  - data: default_data
+  - evaluation: default_evaluation
   - logging: wandb_logging
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog

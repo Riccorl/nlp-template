@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Any, Union, List, Optional, Sequence
 
 import hydra
@@ -91,11 +92,13 @@ class BasePLDataModule(pl.LightningDataModule):
             # the same logic as val and test datasets
             self.train_dataset = hydra.utils.instantiate(self.datasets.train)
             self.val_datasets = [
-                hydra.utils.instantiate(dataset_cfg) for dataset_cfg in self.datasets.val
+                hydra.utils.instantiate(dataset_cfg)
+                for dataset_cfg in self.datasets.val
             ]
         if stage == "test" or stage is None:
             self.test_datasets = [
-                hydra.utils.instantiate(dataset_cfg) for dataset_cfg in self.datasets.test
+                hydra.utils.instantiate(dataset_cfg)
+                for dataset_cfg in self.datasets.test
             ]
 
     def train_dataloader(self, *args, **kwargs) -> DataLoader:
@@ -104,6 +107,8 @@ class BasePLDataModule(pl.LightningDataModule):
             shuffle=True,
             batch_size=self.batch_sizes.train,
             num_workers=self.num_workers.train,
+            pin_memory=True,
+            collate_fn=partial(self.train_dataset.collate_fn, *args, **kwargs),
         )
 
     def val_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
@@ -113,6 +118,8 @@ class BasePLDataModule(pl.LightningDataModule):
                 shuffle=False,
                 batch_size=self.batch_sizes.val,
                 num_workers=self.num_workers.val,
+                pin_memory=True,
+                collate_fn=partial(dataset.collate_fn, *args, **kwargs),
             )
             for dataset in self.val_datasets
         ]
@@ -124,6 +131,8 @@ class BasePLDataModule(pl.LightningDataModule):
                 shuffle=False,
                 batch_size=self.batch_sizes.test,
                 num_workers=self.num_workers.test,
+                pin_memory=True,
+                collate_fn=partial(dataset.collate_fn, *args, **kwargs),
             )
             for dataset in self.test_datasets
         ]
@@ -134,7 +143,7 @@ class BasePLDataModule(pl.LightningDataModule):
     def transfer_batch_to_device(
         self, batch: Any, device: torch.device, dataloader_idx: int
     ) -> Any:
-        raise NotImplementedError
+        super().transfer_batch_to_device(batch, device, dataloader_idx)
 
     def __repr__(self) -> str:
         return (
