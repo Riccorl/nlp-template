@@ -1,3 +1,4 @@
+import os
 from functools import partial
 from typing import Any, Union, List, Optional, Sequence
 
@@ -9,6 +10,9 @@ from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 from torch.utils.data import DataLoader, Dataset
 
 from data.labels import Labels
+from utils.logging import get_console_logger
+
+logger = get_console_logger()
 
 
 class BasePLDataModule(pl.LightningDataModule):
@@ -81,6 +85,18 @@ class BasePLDataModule(pl.LightningDataModule):
             `Labels`: A dictionary of labels
         """
         raise NotImplementedError
+
+    def save_labels(self, path: Union[str, os.PathLike]) -> None:
+        """
+        Saves the labels to a file
+
+        Args:
+            path (str): The path to save the labels to
+        """
+        if self.labels is None:
+            logger.log("No labels to save")
+            return
+        self.labels.to_file(path)
 
     def prepare_data(self, *args, **kwargs):
         pass

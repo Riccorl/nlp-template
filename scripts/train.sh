@@ -73,7 +73,7 @@ if [ -z "$LANG_MODEL_NAME" ]; then
 fi
 
 # shift for overrides
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 # split overrides into key=value pairs
 OVERRIDES=$(echo "$@" | sed -e 's/ /\n/g')
 
@@ -211,8 +211,8 @@ echo -e "$GPU_RAM_MESSAGE${CHECK_MARK} Starting.\n"
 # you may want to set `TOKENIZERS_PARALLELISM` to `false`
 #export TOKENIZERS_PARALLELISM=false
 
-# PYTHONPATH
-export PYTHONPATH=$(pwd)
+DIRPATH=$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE:-$0}")")")/src
+export PYTHONPATH="$DIRPATH"
 
 export HYDRA_FULL_ERROR=1
 
@@ -232,7 +232,7 @@ if [ "$DEV_RUN" = "True" ]; then
     $OVERRIDES
 else
   python src/bin/train.py \
-    "model.model.language_model=$LANG_MODEL_NAME"  \
+    "model.model.language_model=$LANG_MODEL_NAME" \
     "train.pl_trainer.fast_dev_run=$DEV_RUN" \
     "train.pl_trainer.devices=$DEVICES" \
     "train.pl_trainer.accelerator=$ACCELERATOR" \

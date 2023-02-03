@@ -4,3 +4,4 @@ hydra_colorlog
 wandb
 rich
 transformers>=4.26,<4.27
+black[d]

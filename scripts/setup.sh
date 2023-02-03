@@ -15,7 +15,7 @@ conda activate "$ENV_NAME"
 
 # replace placeholder env with $ENV_NAME in scripts/train.sh
 NEW_CONDA_LINE="source \$CONDA_BASE/bin/activate $ENV_NAME"
-sed -i '' "s,.*bin/activate.*,$NEW_CONDA_LINE,g" scripts/train.sh
+sed -i.bak -e "s,.*bin/activate.*,$NEW_CONDA_LINE,g" scripts/train.sh
 
 # install torch
 read -rp "Enter cuda version (e.g. '11.7', default no cuda support): " CUDA_VERSION
@@ -24,9 +24,9 @@ if [ -n "$PYTORCH_VERSION" ]; then
   PYTORCH_VERSION="=$PYTORCH_VERSION"
 fi
 if [ -z "$CUDA_VERSION" ]; then
-    echo conda install -y pytorch"$PYTORCH_VERSION" cpuonly -c pytorch
+    conda install -y pytorch"$PYTORCH_VERSION" cpuonly -c pytorch
 else
-    echo conda install -y pytorch"$PYTORCH_VERSION" cudatoolkit="$CUDA_VERSION" -c pytorch
+    conda install -y pytorch"$PYTORCH_VERSION" pytorch-cuda=11.6 -c pytorch -c nvidia
 fi
 
 # install python requirements
