@@ -159,7 +159,7 @@ class BasePLDataModule(pl.LightningDataModule):
     def transfer_batch_to_device(
         self, batch: Any, device: torch.device, dataloader_idx: int
     ) -> Any:
-        super().transfer_batch_to_device(batch, device, dataloader_idx)
+        return super().transfer_batch_to_device(batch, device, dataloader_idx)
 
     def __repr__(self) -> str:
         return (

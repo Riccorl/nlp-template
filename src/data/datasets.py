@@ -1,11 +1,15 @@
 import os
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, Tuple, Sequence
 from typing import Dict, Iterator, List, Union
 
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data import IterableDataset
+
+from utils.logging import get_console_logger
+
+logger = get_console_logger()
 
 
 class BaseDataset(Dataset):
@@ -19,14 +23,17 @@ class BaseDataset(Dataset):
         self.path = path
         self.name = name
         self.project_folder = Path(__file__).parent.parent.parent
+        # here your parameters
+        # ...
+        self.data = self.load(path, **kwargs)
 
     def __len__(self) -> int:
-        raise NotImplementedError
+        return len(self.data)
 
     def __getitem__(
         self, index
     ) -> Union[Dict[str, torch.Tensor], Tuple[torch.Tensor, torch.Tensor]]:
-        raise NotImplementedError
+        return self.data[index]
 
     def __repr__(self) -> str:
         return f"Dataset({self.name=}, {self.path=})"
@@ -38,6 +45,25 @@ class BaseDataset(Dataset):
         **kwargs,
     ) -> Any:
         # load data from single or multiple paths in one single dataset
+        # the actual data will be here
+        data = []
+
+        if isinstance(paths, Sequence):
+            paths = [self.project_folder / path for path in paths]
+        else:
+            paths = [self.project_folder / paths]
+
+        # read the data and put it in a placeholder list
+        for path in paths:
+            if not path.exists():
+                raise ValueError(f"{path} does not exist")
+
+            logger.log(
+                f"Loading [bold cyan]{self.name}[/bold cyan] data from [bold]{path}[/bold]"
+            )
+            # do stuff with your data
+
+        # return data
         raise NotImplementedError
 
     @staticmethod

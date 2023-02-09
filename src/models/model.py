@@ -1,12 +1,19 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 import torch.nn.functional as F
 from data.labels import Labels
+import transformers as tr
 
 
 class BaseModel(torch.nn.Module):
-    def __init__(self, labels: Labels, *args, **kwargs):
+    def __init__(
+        self,
+        language_model: Union[str, tr.PreTrainedModel],
+        labels: Labels,
+        *args,
+        **kwargs,
+    ):
         super().__init__()
 
     def forward(
@@ -32,7 +39,7 @@ class BaseModel(torch.nn.Module):
             obj:`torch.Tensor`: The outputs of the model.
         """
 
-        logits = None
+        logits: Optional[torch.Tensor] = None
         output = {"logits": logits}
 
         if compute_predictions:

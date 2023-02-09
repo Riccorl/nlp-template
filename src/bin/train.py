@@ -24,18 +24,21 @@ def train(conf: omegaconf.DictConfig) -> None:
     # reproducibility
     pl.seed_everything(conf.train.seed)
     set_determinism_the_old_way(conf.train.pl_trainer.deterministic)
-    conf.train.pl_trainer.deterministic = False
-    torch.set_float32_matmul_precision(conf.train.float32_matmul_precision)
+    if conf.train.set_determinism_the_old_way:
+        set_determinism_the_old_way(conf.train.pl_trainer.deterministic)
+        conf.train.pl_trainer.deterministic = False
 
     logger.log(
-        f"Starting training for [bold cyan]{conf.train.model_name}[/bold cyan] model"
+        f"Starting training for [bold cyan]{conf.model_name}[/bold cyan] model"
     )
     if conf.train.pl_trainer.fast_dev_run:
         logger.log(
             f"Debug mode {conf.train.pl_trainer.fast_dev_run}. Forcing debugger configuration"
         )
         # Debuggers don't like GPUs nor multiprocessing
-        conf.train.pl_trainer.gpus = 0
+        conf.train.pl_trainer.accelerator = "cpu"
+        conf.train.pl_trainer.devices = 1
+        conf.train.pl_trainer.strategy = None
         conf.train.pl_trainer.precision = 32
         conf.data.datamodule.num_workers = {
             k: 0 for k in conf.data.datamodule.num_workers

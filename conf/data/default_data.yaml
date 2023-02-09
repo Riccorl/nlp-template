@@ -2,10 +2,10 @@ datamodule:
   _target_: data.pl_data_modules.BasePLDataModule
   datasets:
     train:
-      - _target_: data.datasets.BaseDataset
-        name: 'train'
-        path:
-          - 'data/path/to/dataset'
+      _target_: data.datasets.BaseDataset
+      name: 'train'
+      path:
+        - 'data/path/to/dataset'
 
     val:
       - _target_: data.datasets.BaseDataset
