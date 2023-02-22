@@ -18,6 +18,7 @@ where:
                   training will wait until there is enough space.
     -s            Strategy to use for distributed training, default NULL.
     -o            Run the experiment offline
+    -v            Print the config
     OVERRIDES     Overrides for the experiment, in the form of key=value.
                   For example, 'model_name=bert-base-uncased'
 Example:
@@ -25,9 +26,28 @@ Example:
   ./script/train.sh -l bert-base-cased -m 10000
 "
 
+# Transform long options to short ones
+for arg in "$@"; do
+  shift
+  case "$arg" in
+    '--help')   set -- "$@" '-h'   ;;
+    '--language-model') set -- "$@" '-l'   ;;
+    '--debug')   set -- "$@" '-d'   ;;
+    '--precision')     set -- "$@" '-p'   ;;
+    '--cpu')     set -- "$@" '-c'   ;;
+    '--devices')     set -- "$@" '-g'   ;;
+    '--nodes')     set -- "$@" '-n'   ;;
+    '--gpu-mem')     set -- "$@" '-m'   ;;
+    '--strategy')     set -- "$@" '-s'   ;;
+    '--offline')     set -- "$@" '-o'   ;;
+    '--print')     set -- "$@" '-v'   ;;
+    *)          set -- "$@" "$arg" ;;
+  esac
+done
+
 # check for named params
 #while [ $OPTIND -le "$#" ]; do
-while getopts ":hl:dp:cg:n:m:s:o" opt; do
+while getopts ":hl:dp:cg:n:m:s:ov" opt; do
   case $opt in
   h)
     printf "%s$USAGE" && exit 0
@@ -59,23 +79,27 @@ while getopts ":hl:dp:cg:n:m:s:o" opt; do
   o)
     WANDB="offline"
     ;;
+  v)
+    PRINT_CONFIG="++print_config=True"
+    ;;
   \?)
     echo "Invalid option -$OPTARG" >&2 && echo "$USAGE" && exit 0
     ;;
   esac
 done
 
-# if LANG_MODEL_NAME is not specified, abort
-if [ -z "$LANG_MODEL_NAME" ]; then
-  printf "A language model name must be specified.\n\n"
-  printf "%s$USAGE"
-  exit 0
-fi
-
 # shift for overrides
 shift $((OPTIND - 1))
 # split overrides into key=value pairs
 OVERRIDES=$(echo "$@" | sed -e 's/ /\n/g')
+
+if [ "$PRINT_CONFIG" ]; then
+  OVERRIDES="$OVERRIDES $PRINT_CONFIG"
+fi
+
+if [ "$LANG_MODEL_NAME" ]; then
+  OVERRIDES="$OVERRIDES model_name=$LANG_MODEL_NAME"
+fi
 
 # PRELIMINARIES
 CONDA_BASE=$(conda info --base)
@@ -132,7 +156,6 @@ if [ "$DEV_RUN" = "True" ]; then
   WANDB="offline"
   DEVICES=1
   PRECISION=32
-  ACCELERATOR="cpu"
   NODES=1
   USE_CPU="True"
 fi
@@ -209,7 +232,7 @@ echo -e "$GPU_RAM_MESSAGE${CHECK_MARK} Starting.\n"
 
 # if you use the `GenerativeDataset` class
 # you may want to set `TOKENIZERS_PARALLELISM` to `false`
-#export TOKENIZERS_PARALLELISM=false
+export TOKENIZERS_PARALLELISM=false
 
 DIRPATH=$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE:-$0}")")")/src
 export PYTHONPATH="$DIRPATH"
@@ -217,8 +240,7 @@ export PYTHONPATH="$DIRPATH"
 export HYDRA_FULL_ERROR=1
 
 if [ "$DEV_RUN" = "True" ]; then
-  python src/bin/train.py \
-    "model.model.language_model=$LANG_MODEL_NAME" \
+  python src/run/train.py \
     "train.pl_trainer.fast_dev_run=$DEV_RUN" \
     "train.pl_trainer.devices=$DEVICES" \
     "train.pl_trainer.accelerator=$ACCELERATOR" \
@@ -231,8 +253,7 @@ if [ "$DEV_RUN" = "True" ]; then
     "hydra/hydra_logging=disabled" \
     $OVERRIDES
 else
-  python src/bin/train.py \
-    "model.model.language_model=$LANG_MODEL_NAME" \
+  python src/run/train.py \
     "train.pl_trainer.fast_dev_run=$DEV_RUN" \
     "train.pl_trainer.devices=$DEVICES" \
     "train.pl_trainer.accelerator=$ACCELERATOR" \

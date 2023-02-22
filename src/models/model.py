@@ -9,18 +9,22 @@ import transformers as tr
 class BaseModel(torch.nn.Module):
     def __init__(
         self,
-        language_model: Union[str, tr.PreTrainedModel],
+        loss_fn: torch.nn.Module,
         labels: Labels,
         *args,
         **kwargs,
     ):
         super().__init__()
+        self.labels: Optional[Labels] = None
+        if labels is not None:
+            self.labels = labels
+        self.loss_fn = loss_fn
 
     def forward(
         self,
         labels: Optional[torch.Tensor] = None,
-        compute_loss: bool = False,
-        compute_predictions: bool = False,
+        return_loss: bool = False,
+        return_predictions: bool = False,
         *args,
         **kwargs,
     ) -> Dict[str, torch.Tensor]:
@@ -30,9 +34,9 @@ class BaseModel(torch.nn.Module):
         Args:
             labels (`torch.Tensor`):
                 The labels of the sentences.
-            compute_predictions (`bool`):
+            return_predictions (`bool`):
                 Whether to compute the predictions.
-            compute_loss (`bool`):
+            return_loss (`bool`):
                 Whether to compute the loss.
 
         Returns:
@@ -42,29 +46,11 @@ class BaseModel(torch.nn.Module):
         logits: Optional[torch.Tensor] = None
         output = {"logits": logits}
 
-        if compute_predictions:
+        if return_predictions:
             predictions = logits.argmax(dim=-1)
             output["predictions"] = predictions
 
-        if compute_loss and labels is not None:
-            output["loss"] = self.compute_loss(logits, labels)
+        if return_loss and labels is not None:
+            output["loss"] = self.loss_fn(logits, labels)
 
         return output
-
-    def compute_loss(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        """
-        Compute the loss of the model.
-
-        Args:
-            logits (`torch.Tensor`):
-                The logits of the model.
-            labels (`torch.Tensor`):
-                The labels of the model.
-
-        Returns:
-            obj:`torch.Tensor`: The loss of the model.
-        """
-        # return F.cross_entropy(
-        #     logits.view(-1, self.labels.get_label_size()), labels.view(-1)
-        # )
-        raise NotImplementedError
