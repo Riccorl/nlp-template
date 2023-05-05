@@ -1,31 +1,31 @@
 import os
 from pathlib import Path
-from typing import Any, Tuple, Sequence
-from typing import Dict, Iterator, List, Union
+from typing import Any, Dict, Iterator, List, Tuple, Union, Optional
 
 import torch
-from torch.utils.data import Dataset
-from torch.utils.data import IterableDataset
+from torch.utils.data import Dataset, IterableDataset
+from torch.utils.data.dataset import T_co
 
-from utils.logging import get_console_logger
+from src.common.logging import get_logger
 
-logger = get_console_logger()
+logger = get_logger(__name__, level="INFO")
 
 
 class BaseDataset(Dataset):
     def __init__(
         self,
         name: str,
-        path: Union[str, os.PathLike, List[str], List[os.PathLike]],
+        path: Union[str, os.PathLike, List[str], List[os.PathLike]] = None,
+        data: Any = None,
         **kwargs,
     ):
         super().__init__()
-        self.path = path
         self.name = name
+        if path is None and data is None:
+            raise ValueError("Either `path` or `data` must be provided")
+        self.path = path
         self.project_folder = Path(__file__).parent.parent.parent
-        # here your parameters
-        # ...
-        self.data = self.load(path, **kwargs)
+        self.data = data
 
     def __len__(self) -> int:
         return len(self.data)
@@ -45,25 +45,6 @@ class BaseDataset(Dataset):
         **kwargs,
     ) -> Any:
         # load data from single or multiple paths in one single dataset
-        # the actual data will be here
-        data = []
-
-        if isinstance(paths, Sequence):
-            paths = [self.project_folder / path for path in paths]
-        else:
-            paths = [self.project_folder / paths]
-
-        # read the data and put it in a placeholder list
-        for path in paths:
-            if not path.exists():
-                raise ValueError(f"{path} does not exist")
-
-            logger.log(
-                f"Loading [bold cyan]{self.name}[/bold cyan] data from [bold]{path}[/bold]"
-            )
-            # do stuff with your data
-
-        # return data
         raise NotImplementedError
 
     @staticmethod
@@ -76,9 +57,10 @@ class GenerativeDataset(IterableDataset):
         self,
         name: str,
         path: Union[str, Path, List[str], List[Path]],
-        max_tokens_per_batch: int = 800,
+        max_tokens_per_batch: Optional[int] = 800,
         drop_last_batch: bool = False,
         shuffle: bool = False,
+        data: Any = None,
         *args,
         **kwargs,
     ):
@@ -88,8 +70,10 @@ class GenerativeDataset(IterableDataset):
         self.max_tokens_per_batch = max_tokens_per_batch
         self.drop_last_batch = drop_last_batch
         self.shuffle = shuffle
-        self.data = self.load(path)
-        self.n_batches = sum([1 for _ in self])
+        self.project_folder = Path(__file__).parent.parent.parent
+        self.data = data
+        # self.data = self.load(path)
+        # self.n_batches = sum([1 for _ in self])
 
     def __repr__(self) -> str:
         return f"Dataset({self.name=}, {self.path=})"
@@ -104,16 +88,19 @@ class GenerativeDataset(IterableDataset):
                 max(ct, sample_tokens) * (len(batch) + 1) > self.max_tokens_per_batch
                 and len(batch) > 0
             ):
-                yield self.prepare_output_batch(batch)
+                yield self.collate_fn(batch)
                 batch = []
                 ct = 0
             batch.append(sample)
             ct = max(ct, sample_tokens)
         # drop last cause might be too short and result in issues (nan if we are using amp)
         if not self.drop_last_batch and len(batch) > 0:
-            yield self.prepare_output_batch(batch)
+            yield self.collate_fn(batch)
 
-    def prepare_output_batch(self, batch: Any) -> Any:
+    def __getitem__(self, index) -> T_co:
+        pass
+
+    def collate_fn(self, batch: Any, *args, **kwargs) -> Any:
         # Use this as `collate_fn`
         raise NotImplementedError
 

@@ -1,9 +1,8 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional
 
 import torch
-import torch.nn.functional as F
+
 from data.labels import Labels
-import transformers as tr
 
 
 class BaseModel(torch.nn.Module):

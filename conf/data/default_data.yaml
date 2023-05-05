@@ -1,20 +1,20 @@
 datamodule:
-  _target_: data.pl_data_modules.BasePLDataModule
+  _target_: src.data.pl_data_modules.PLDataModule
   datasets:
     train:
-      _target_: data.datasets.BaseDataset
+      _target_: src.data.datasets.BaseDataset
       name: 'train'
       path:
         - 'data/path/to/dataset'
 
     val:
-      - _target_: data.datasets.BaseDataset
+      - _target_: src.data.datasets.BaseDataset
         name: 'val'
         path:
           - 'data/path/to/dataset'
 
     test:
-      - _target_: data.datasets.BaseDataset
+      - _target_: src.data.datasets.PLDataModule
         name: 'test'
         path:
           - 'data/path/to/dataset'

@@ -1,19 +1,11 @@
-language_model: "bert-base-cased"
+language_model: "sentence-transformers/all-MiniLM-L12-v2"
 
 pl_module:
-  _target_: models.pl_modules.BasePLModule
+  _target_: src.models.pl_modules.PLModule
   model:
-    _target_:  models.model.BaseModel
-    loss_fn:
-      _target_: torch.nn.CrossEntropyLoss
-      ignore_index: -100
-  optimizer:
-    _target_: torch.optim.RAdam
-    lr: 1e-5
-    betas: [0.9, 0.999]
-    eps: 1e-08
-    weight_decay: 0
-  lr_scheduler:
-    _target_: transformers.get_linear_schedule_with_warmup
-    num_warmup_steps: null
-    num_training_steps: null
+    _target_: src.models.model.BaseModel
+    loss_type: ${loss}
+  optimizer: ${optimizer}
+  lr_scheduler: ${scheduler}
+  grouped_parameters: True
+  warmup_steps_ratio: 0.1
