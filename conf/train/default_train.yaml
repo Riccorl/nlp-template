@@ -1,10 +1,6 @@
 # reproducibility
 seed: 42
 
-export: False
-float32_matmul_precision: "medium"
-set_determinism_the_old_way: False
-
 only_test: False
 
 ckpt_path: null
@@ -39,8 +35,8 @@ early_stopping_callback:
 # "model_checkpoint_callback: null" will disable model checkpointing
 model_checkpoint_callback:
   _target_: pytorch_lightning.callbacks.ModelCheckpoint
-  monitor: validate_recall@${train.top_k}
-  mode: max
+  monitor: val_loss@${train.top_k}
+  mode: min
   verbose: True
   save_top_k: 1
   save_last: False

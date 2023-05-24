@@ -78,7 +78,7 @@ def train(conf: omegaconf.DictConfig) -> None:
                     f"Both `max_epochs` and `max_steps` are specified in the trainer configuration. "
                     f"Will use `max_epochs` for the number of training steps"
                 )
-                conf.train.pl_trainer.max_steps = None
+            conf.train.pl_trainer.max_steps = num_training_steps
         elif (
             "max_steps" in conf.train.pl_trainer and conf.train.pl_trainer.max_steps > 0
         ):
@@ -101,8 +101,7 @@ def train(conf: omegaconf.DictConfig) -> None:
                     and conf.model.pl_module.warmup_steps_ratio is not None
                 ):
                     conf.model.pl_module.lr_scheduler.num_warmup_steps = int(
-                        conf.model.pl_module.lr_scheduler.num_training_steps
-                        * conf.model.pl_module.warmup_steps_ratio
+                        conf.train.pl_trainer.max_steps * conf.model.pl_module.warmup_steps_ratio
                     )
                 else:
                     conf.model.pl_module.lr_scheduler.num_warmup_steps = 0
