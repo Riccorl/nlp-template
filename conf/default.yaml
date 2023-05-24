@@ -11,6 +11,9 @@ defaults:
   - train: default_train
   - model: default_model
   - data: default_data
+  - scheduler: linear_scheduler_with_warmup
+  - optimizer: radam
+  - loss: crossentropy
   - evaluation: default_evaluation
   - logging: wandb_logging
   - override hydra/job_logging: colorlog

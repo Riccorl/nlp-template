@@ -14,7 +14,7 @@ datamodule:
           - 'data/path/to/dataset'
 
     test:
-      - _target_: src.data.datasets.PLDataModule
+      - _target_: src.data.datasets.BaseDataset
         name: 'test'
         path:
           - 'data/path/to/dataset'

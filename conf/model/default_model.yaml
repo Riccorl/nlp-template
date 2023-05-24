@@ -4,7 +4,7 @@ pl_module:
   _target_: src.models.pl_modules.PLModule
   model:
     _target_: src.models.model.BaseModel
-    loss_type: ${loss}
+    loss_fn: ${loss}
   optimizer: ${optimizer}
   lr_scheduler: ${scheduler}
   grouped_parameters: True

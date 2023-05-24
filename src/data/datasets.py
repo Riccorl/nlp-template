@@ -52,7 +52,7 @@ class BaseDataset(Dataset):
         raise NotImplementedError
 
 
-class GenerativeDataset(IterableDataset):
+class IterableBaseDataset(IterableDataset):
     def __init__(
         self,
         name: str,

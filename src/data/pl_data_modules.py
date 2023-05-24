@@ -11,7 +11,7 @@ from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 from torch.utils.data import DataLoader, Dataset
 
 from src.common.logging import get_logger
-from src.data.datasets import GenerativeDataset
+from src.data.datasets import IterableBaseDataset
 from src.data.labels import Labels
 
 logger = get_logger(__name__, level="INFO")
@@ -98,18 +98,18 @@ class PLDataModule(pl.LightningDataModule):
     def train_dataloader(self, *args, **kwargs) -> DataLoader:
         return DataLoader(
             self.train_dataset,
-            shuffle=not isinstance(self.train_dataset, GenerativeDataset),
+            shuffle=not isinstance(self.train_dataset, IterableBaseDataset),
             batch_size=self.batch_sizes.train
-            if not isinstance(self.train_dataset, GenerativeDataset)
+            if not isinstance(self.train_dataset, IterableBaseDataset)
             else None,
             num_workers=self.num_workers.train
-            if not isinstance(self.train_dataset, GenerativeDataset)
+            if not isinstance(self.train_dataset, IterableBaseDataset)
             else 0,
             pin_memory=True,
             collate_fn=partial(
                 self.train_dataset.collate_fn, tokenizer=self.tokenizer, *args, **kwargs
             )
-            if not isinstance(self.train_dataset, GenerativeDataset)
+            if not isinstance(self.train_dataset, IterableBaseDataset)
             else lambda x: x,
         )
 
@@ -119,16 +119,16 @@ class PLDataModule(pl.LightningDataModule):
                 dataset,
                 shuffle=False,
                 batch_size=self.batch_sizes.val
-                if not isinstance(dataset, GenerativeDataset)
+                if not isinstance(dataset, IterableBaseDataset)
                 else None,
                 num_workers=self.num_workers.val
-                if not isinstance(dataset, GenerativeDataset)
+                if not isinstance(dataset, IterableBaseDataset)
                 else 0,
                 pin_memory=True,
                 collate_fn=partial(
                     dataset.collate_fn, tokenizer=self.tokenizer, *args, **kwargs
                 )
-                if not isinstance(dataset, GenerativeDataset)
+                if not isinstance(dataset, IterableBaseDataset)
                 else lambda x: x,
             )
             for dataset in self.val_datasets
@@ -140,16 +140,16 @@ class PLDataModule(pl.LightningDataModule):
                 dataset,
                 shuffle=False,
                 batch_size=self.batch_sizes.test
-                if not isinstance(dataset, GenerativeDataset)
+                if not isinstance(dataset, IterableBaseDataset)
                 else None,
                 num_workers=self.num_workers.test
-                if not isinstance(dataset, GenerativeDataset)
+                if not isinstance(dataset, IterableBaseDataset)
                 else 0,
                 pin_memory=True,
                 collate_fn=partial(
                     dataset.collate_fn, tokenizer=self.tokenizer, *args, **kwargs
                 )
-                if not isinstance(dataset, GenerativeDataset)
+                if not isinstance(dataset, IterableBaseDataset)
                 else lambda x: x,
             )
             for dataset in self.test_datasets
